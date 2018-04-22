@@ -3,7 +3,7 @@ package com.daysofree.hadoop.mapreduce;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -44,12 +44,12 @@ public class WordCountApp {
         // 设置Mapper相关参数
         job.setMapperClass(MyMapper.class);
         job.setMapOutputKeyClass(Text.class);
-        job.setMapOutputValueClass(LongWritable.class);
+        job.setMapOutputValueClass(IntWritable.class);
 
         // 设置reducer相关参数
         job.setReducerClass(MyReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(LongWritable.class);
+        job.setOutputValueClass(IntWritable.class);
 
         // 设置输出路径
         FileOutputFormat.setOutputPath(job, new Path(args[1]));
@@ -58,7 +58,11 @@ public class WordCountApp {
 
     }
 
-    public static class MyMapper extends Mapper<LongWritable, Text, Text, LongWritable> {
+    public static class MyMapper extends Mapper<Object, Text, Text, IntWritable> {
+
+        private static final IntWritable one = new IntWritable(1);
+        private Text text = new Text();
+
         /**
          * @param value   行号
          * @param key     每一行的字符串
@@ -67,18 +71,19 @@ public class WordCountApp {
          * @throws InterruptedException
          */
         @Override
-        protected void map(LongWritable value, Text key, Context context) throws IOException, InterruptedException {
-            LongWritable one = new LongWritable(1);
+        protected void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             // 接收到的每一行数据，按照空格拆分单词
-            String[] words = key.toString().split(" ");
+            System.out.println("map:key=" + key.toString());
+            String[] words = value.toString().split(" ");
             for (String word : words) {
+                text.set(word);
                 // 输出到上线文
-                context.write(new Text(word), one);
+                context.write(text, one);
             }
         }
     }
 
-    public static class MyReducer extends Reducer<Text, LongWritable, Text, LongWritable> {
+    public static class MyReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
         /**
          * @param key     拆分的单词
          * @param values  单个单词的个数
@@ -87,14 +92,14 @@ public class WordCountApp {
          * @throws InterruptedException
          */
         @Override
-        protected void reduce(Text key, Iterable<LongWritable> values, Context context) throws IOException, InterruptedException {
+        protected void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
             int sum = 0;
-            for (LongWritable value : values) {
+            for (IntWritable value : values) {
                 // 统计每个单词出现的次数
                 sum += value.get();
             }
             // 输出到设置的输出路径
-            context.write(key, new LongWritable(sum));
+            context.write(key, new IntWritable(sum));
         }
     }
 
