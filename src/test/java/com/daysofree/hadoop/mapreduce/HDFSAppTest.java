@@ -1,4 +1,4 @@
-package com.daysofree.hadoop;
+package com.daysofree.hadoop.mapreduce;
 
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -27,9 +27,8 @@ public class HDFSAppTest {
 
     @Test
     public void ls() throws IOException {
-        RemoteIterator<FileStatus> fileStatusRemoteIterator = fileSystem.listStatusIterator(new Path("/hdfsapi/test"));
-        while (fileStatusRemoteIterator.hasNext()) {
-            FileStatus fileStatus = fileStatusRemoteIterator.next();
+        FileStatus[] fileStatuses = fileSystem.listStatus(new Path("/hdfsapi/test"));
+        for (FileStatus fileStatus : fileStatuses) {
             System.out.print("isDirectory:" + fileStatus.isDirectory() + "\t");
             System.out.print("getReplication:" + fileStatus.getReplication() + "\t");
             System.out.print("getLen:" + fileStatus.getLen() + "\t");
