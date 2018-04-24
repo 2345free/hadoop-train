@@ -76,7 +76,7 @@ public class HDFSAppTest {
     }
 
     @Before
-    public void turnUp() throws URISyntaxException, IOException, InterruptedException {
+    public void setUp() throws URISyntaxException, IOException, InterruptedException {
         // 设置客户端访问hdfs的用户名，避免出现权限错误
         System.setProperty("HADOOP_USER_NAME", "root");
         configuration = new Configuration();
