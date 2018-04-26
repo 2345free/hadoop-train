@@ -8,11 +8,16 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.hbase.client.HTableInterface;
+import org.apache.hadoop.hbase.client.Put;
+import org.apache.hadoop.hbase.util.Bytes;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.hadoop.hbase.HbaseTemplate;
+import org.springframework.data.hadoop.hbase.TableCallback;
 
-import javax.annotation.Resource;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -25,8 +30,30 @@ import java.util.Objects;
 @Slf4j
 public class SpringHadoopAppTest extends BaseTest {
 
-    @Resource
+    @Autowired
     private FileSystem fileSystem;
+
+    @Autowired
+    private HbaseTemplate hbaseTemplate;
+
+    static {
+        System.setProperty("hadoop.home.dir", "D:/develop/software/hadoop-common-2.2.0-bin-master");
+    }
+
+    @Test
+    public void hbasePutData() {
+
+        hbaseTemplate.execute("test", new TableCallback<Object>() {
+            @Override
+            public Object doInTable(HTableInterface table) throws Throwable {
+                Put p = new Put(Bytes.toBytes("row1"));
+                p.addColumn(Bytes.toBytes("cf"), Bytes.toBytes("a"), Bytes.toBytes("value1"));
+                p.addColumn(Bytes.toBytes("cf2"), Bytes.toBytes("b"), Bytes.toBytes("value2"));
+                table.put(p);
+                return null;
+            }
+        });
+    }
 
     @Test
     public void userAgentCount() throws IOException {
